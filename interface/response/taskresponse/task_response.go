@@ -12,15 +12,6 @@ func NewMapper() *Mapper {
 	return &Mapper{}
 }
 
-type Task struct {
-	ID        string
-	Title     string
-	Done      bool
-	Disabled  bool
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
 type TaskResponse struct {
 	ID        string    `json:"id"`
 	Title     string    `json:"title"`
