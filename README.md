@@ -9,12 +9,12 @@ Go で RPC スタイルの API を実装するサンプル
 全て POST で統一し、パスは以下の命名規則に従う。
 
 ```
-POST /serviceName/v1/useCaseName/methodName
+POST /serviceName/v1/usecaseName/methodName
 ```
 
 - 単語は lowerCamel
 - serviceName はマイクロサービス化を想定して設定、モノリス時は`core`というサービス名を使う。
-- useCaseName, methodName は`usecase`ディレクトリ配下の構造体名、メソッド名に合わせる。
+- usecaseName, methodName は`usecase`ディレクトリ配下の構造体名、メソッド名に合わせる。
 - get, list から始まる methodName は安全性・冪等性を担保する。
 
 ### API 定義
@@ -59,7 +59,7 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	t, err := h.taskUseCase.Get(ctx, req.ID)
+	t, err := h.taskUsecase.Get(ctx, req.ID)
 	switch {
 
 	// 200
@@ -94,4 +94,37 @@ curl -X POST localhost:8000/core/v1/task/list
 curl -X POST localhost:8000/core/v1/task/create -d '{ "title": "title_01" }'
 curl -X POST localhost:8000/core/v1/task/update -d '{ "id": "id_01", "title": "title_01", "status": "DONE" }'
 curl -X POST localhost:8000/core/v1/task/delete -d '{ "id": "id_01" }'
+```
+
+## アーキテクチャ
+
+### interface 層
+
+外部からのリクエストを受け取り、usecase を呼び出し、結果に応じてレスポンスを返す。
+
+### usecase 層
+
+domain を使用して実際の一連の処理を記述する。
+
+### domain 層
+
+- entity
+- value object
+- factory
+- repository
+
+などを定義。
+
+repository ではデータ永続化や取得の interface のみ定義し、domain 層が特定の DB や API などの外部ツールに依存しないようにする。
+
+usecase を見れば全体の処理の流れを追えるようにするため、ドメインサービスは使用しない。
+
+### infrastructure 層
+
+domain 層で定義した interface の実装を行う。DB や外部 API などとのやり取りを実装する。
+
+### 各層の依存方向
+
+```
+interface -> usecase -> domain <- infrastructure
 ```
