@@ -2,6 +2,23 @@
 
 Go で RPC スタイルの API を実装するサンプル
 
+## 起動方法
+
+```sh
+docker build -t go-rpc-server .
+docker run --rm -it -p 8000:8000 go-rpc-server
+```
+
+## 動作確認コマンド
+
+```sh
+curl -X POST localhost:8000/core/v1/task/get -d '{ "id": "id_01" }'
+curl -X POST localhost:8000/core/v1/task/list
+curl -X POST localhost:8000/core/v1/task/create -d '{ "title": "title_01" }'
+curl -X POST localhost:8000/core/v1/task/update -d '{ "id": "id_01", "title": "title_01", "status": "DONE" }'
+curl -X POST localhost:8000/core/v1/task/delete -d '{ "id": "id_01" }'
+```
+
 ## API 設計
 
 ### 命名規則
@@ -17,9 +34,11 @@ POST /serviceName/v1/usecaseName/methodName
 - usecaseName, methodName は`usecase`ディレクトリ配下の構造体名、メソッド名に合わせる。
 - get, list から始まる methodName は安全性・冪等性を担保する。
 
-### API 定義
+### API スキーマ定義
 
-OpenAPI などのスキーマは書かない代わりに、ソースコードを綺麗に保ち API のパス、リクエスト、レスポンスを読みやすくする。
+OpenAPI などを使うとスキーマファイルの管理コストがかかるため用意しない。
+
+代わりに、ソースコードを綺麗に保ち API のパス、リクエスト、レスポンスを読みやすくする。
 
 `main.go`を見れば API の一覧が見れる。
 
@@ -79,23 +98,6 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-## 起動方法
-
-```sh
-docker build -t go-rpc-server .
-docker run --rm -it -p 8000:8000 go-rpc-server
-```
-
-## 動作確認コマンド
-
-```sh
-curl -X POST localhost:8000/core/v1/task/get -d '{ "id": "id_01" }'
-curl -X POST localhost:8000/core/v1/task/list
-curl -X POST localhost:8000/core/v1/task/create -d '{ "title": "title_01" }'
-curl -X POST localhost:8000/core/v1/task/update -d '{ "id": "id_01", "title": "title_01", "status": "DONE" }'
-curl -X POST localhost:8000/core/v1/task/delete -d '{ "id": "id_01" }'
-```
-
 ## アーキテクチャ
 
 ### interface 層
@@ -128,3 +130,13 @@ domain 層で定義した interface の実装を行う。DB や外部 API など
 ```
 interface -> usecase -> domain <- infrastructure
 ```
+
+## 開発フロー
+
+domain 層と usecase 層から作成して、infrastructure 層、最後に interface 層を実装するフローが理想。
+
+しかし、実際の開発現場は納期に追われ、フロントエンドの開発チームの作業を止めないように API スキーマを先に決めたり、mock サーバーを用意してフロントエンドから API との連携をテストできる状態にする必要がある。
+
+その場合、`/core/v1/task/done`のように先に interface と domain の entity だけ作成し、usecase で mock データを返す状態を作る。
+
+こうすることで、フロントエンドチームは API 定義とモックサーバーを確認でき、バックエンドチームの負担も増やさずに済む。
