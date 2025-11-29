@@ -71,11 +71,6 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", err)
 		httpresponse.RenderJson(ctx, w, http.StatusBadRequest, h.errorMapper.MapErrorResponse(errorresponse.ErrInvalidRequestBody))
 
-	// 404
-	case errors.Is(err, task.ErrNotFound):
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", err)
-		httpresponse.RenderJson(ctx, w, http.StatusNotFound, h.errorMapper.MapErrorResponse(errorresponse.ErrNotFound))
-
 	// 500
 	default:
 		slog.ErrorContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", err)
