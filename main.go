@@ -20,10 +20,8 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-
 	// OSシグナルに反応してHTTPサーバーをGraceful Shutdownさせるコンテキストを用意
-	ctx, stop := signal.NotifyContext(ctx, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 	defer stop()
 
 	idGenerator := &id.SecureGenerator{}
