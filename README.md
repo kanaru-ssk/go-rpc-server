@@ -57,8 +57,10 @@ handler のコードを追えばリクエスト、レスポンスの内容が分
 
 ```go
 // interface/httphandler/task.go
+
+// POST /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
-	var req struct {
+	var request struct {
 		ID string `json:"id"`
 	}
 
@@ -72,13 +74,13 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// 400
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", err)
 		httpresponse.RenderJson(ctx, w, http.StatusBadRequest, h.errorMapper.MapErrorResponse(errorresponse.ErrInvalidRequestBody))
 		return
 	}
 
-	t, err := h.taskUsecase.Get(ctx, req.ID)
+	t, err := h.taskUsecase.Get(ctx, request.ID)
 	switch {
 
 	// 200
