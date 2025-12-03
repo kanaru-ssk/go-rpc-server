@@ -44,13 +44,14 @@ OpenAPI などを使うとスキーマファイルの管理コストがかかる
 
 ```go
 // main.go
-mux.HandleFunc("/healthz", httphandler.HandleGetHealthz)
+mux.HandleFunc("GET /healthz", httphandler.HandleGetHealthz)
 
-mux.HandleFunc("/core/v1/task/get", taskHandler.HandleGetV1)
-mux.HandleFunc("/core/v1/task/list", taskHandler.HandleListV1)
-mux.HandleFunc("/core/v1/task/create", taskHandler.HandleCreateV1)
-mux.HandleFunc("/core/v1/task/update", taskHandler.HandleUpdateV1)
-mux.HandleFunc("/core/v1/task/delete", taskHandler.HandleDeleteV1)
+mux.HandleFunc("POST /core/v1/task/get", taskHandler.HandleGetV1)
+mux.HandleFunc("POST /core/v1/task/list", taskHandler.HandleListV1)
+mux.HandleFunc("POST /core/v1/task/create", taskHandler.HandleCreateV1)
+mux.HandleFunc("POST /core/v1/task/update", taskHandler.HandleUpdateV1)
+mux.HandleFunc("POST /core/v1/task/delete", taskHandler.HandleDeleteV1)
+mux.HandleFunc("POST /core/v1/task/done", taskHandler.HandleDoneV1)
 ```
 
 handler のコードを追えばリクエスト、レスポンスの内容が分かる。
@@ -60,17 +61,9 @@ handler のコードを追えばリクエスト、レスポンスの内容が分
 
 // POST /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var request struct {
 		ID string `json:"id"`
-	}
-
-	ctx := r.Context()
-
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
 	}
 
 	// 400
@@ -91,6 +84,11 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 	case errors.Is(err, task.ErrInvalidID):
 		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", err)
 		httpresponse.RenderJson(ctx, w, http.StatusBadRequest, h.errorMapper.MapErrorResponse(errorresponse.ErrInvalidRequestBody))
+
+	// 404
+	case errors.Is(err, task.ErrNotFound):
+		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", err)
+		httpresponse.RenderJson(ctx, w, http.StatusNotFound, h.errorMapper.MapErrorResponse(errorresponse.ErrNotFound))
 
 	// 500
 	default:

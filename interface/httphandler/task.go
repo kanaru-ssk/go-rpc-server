@@ -33,17 +33,9 @@ func NewTaskHandler(
 
 // POST /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var request struct {
 		ID string `json:"id"`
-	}
-
-	ctx := r.Context()
-
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleGetV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
 	}
 
 	// 400
@@ -81,13 +73,6 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 func (h *TaskHandler) HandleListV1(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleListV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
-	}
-
 	t, err := h.taskUsecase.List(ctx)
 	switch {
 
@@ -104,17 +89,9 @@ func (h *TaskHandler) HandleListV1(w http.ResponseWriter, r *http.Request) {
 
 // POST /core/v1/task/create
 func (h *TaskHandler) HandleCreateV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var request struct {
 		Title string `json:"title"`
-	}
-
-	ctx := r.Context()
-
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleCreateV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
 	}
 
 	// 400
@@ -145,19 +122,11 @@ func (h *TaskHandler) HandleCreateV1(w http.ResponseWriter, r *http.Request) {
 
 // POST /core/v1/task/update
 func (h *TaskHandler) HandleUpdateV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var request struct {
 		ID     string `json:"id"`
 		Title  string `json:"title"`
 		Status string `json:"status"`
-	}
-
-	ctx := r.Context()
-
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleUpdateV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
 	}
 
 	// 400
@@ -195,17 +164,9 @@ func (h *TaskHandler) HandleUpdateV1(w http.ResponseWriter, r *http.Request) {
 
 // POST /core/v1/task/delete
 func (h *TaskHandler) HandleDeleteV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var request struct {
 		ID string `json:"id"`
-	}
-
-	ctx := r.Context()
-
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleDeleteV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
 	}
 
 	// 400
@@ -241,17 +202,9 @@ func (h *TaskHandler) HandleDeleteV1(w http.ResponseWriter, r *http.Request) {
 
 // POST /core/v1/task/done
 func (h *TaskHandler) HandleDoneV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	var request struct {
 		ID string `json:"id"`
-	}
-
-	ctx := r.Context()
-
-	// 405
-	if r.Method != http.MethodPost {
-		slog.WarnContext(ctx, "httphandler.TaskHandler.HandleDoneV1", "err", errorresponse.ErrMethodNotAllowed)
-		httpresponse.RenderJson(ctx, w, http.StatusMethodNotAllowed, h.errorMapper.MapErrorResponse(errorresponse.ErrMethodNotAllowed))
-		return
 	}
 
 	// 400
