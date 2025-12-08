@@ -9,9 +9,9 @@ import (
 	"syscall"
 
 	"github.com/kanaru-ssk/go-rpc-server/domain/task"
-	"github.com/kanaru-ssk/go-rpc-server/infrastructure/memory"
-	infratask "github.com/kanaru-ssk/go-rpc-server/infrastructure/memory/task"
 	"github.com/kanaru-ssk/go-rpc-server/interface/inbound/http/handler"
+	"github.com/kanaru-ssk/go-rpc-server/interface/outbound/memory"
+	memorytask "github.com/kanaru-ssk/go-rpc-server/interface/outbound/memory/task"
 	"github.com/kanaru-ssk/go-rpc-server/lib/id"
 	"github.com/kanaru-ssk/go-rpc-server/lib/tx"
 	"github.com/kanaru-ssk/go-rpc-server/usecase"
@@ -46,14 +46,16 @@ type Application struct {
 func di(idGenerator id.Generator, txManager tx.Manager, tasks map[string]*task.Task) Application {
 	mu := &sync.RWMutex{}
 
+	// outbound interface
+	taskRepository := memorytask.NewRepository(mu, tasks)
+
 	// domain
 	taskFactory := task.NewFactory(idGenerator)
-	taskRepository := infratask.NewRepository(mu, tasks)
 
 	// usecase
 	userUsecase := usecase.NewTaskUsecase(txManager, taskFactory, taskRepository)
 
-	// handler
+	// inbound interface
 	taskHandler := handler.NewTaskHandler(userUsecase)
 
 	mux := http.NewServeMux()
