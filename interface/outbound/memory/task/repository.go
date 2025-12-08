@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/kanaru-ssk/go-rpc-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/entity/task"
 )
 
 func NewRepository(

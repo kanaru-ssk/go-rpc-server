@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/kanaru-ssk/go-rpc-server/entity/task"
-	"github.com/kanaru-ssk/go-rpc-server/interface/inbound/http/response"
-	"github.com/kanaru-ssk/go-rpc-server/usecase"
+	"github.com/kanaru-ssk/go-http-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/interface/inbound/http/response"
+	"github.com/kanaru-ssk/go-http-server/usecase"
 )
 
 type TaskHandler struct {

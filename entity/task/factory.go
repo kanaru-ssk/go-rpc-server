@@ -3,7 +3,7 @@ package task
 import (
 	"time"
 
-	"github.com/kanaru-ssk/go-rpc-server/lib/id"
+	"github.com/kanaru-ssk/go-http-server/lib/id"
 )
 
 type Factory struct {

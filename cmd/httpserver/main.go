@@ -8,13 +8,13 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/kanaru-ssk/go-rpc-server/entity/task"
-	"github.com/kanaru-ssk/go-rpc-server/interface/inbound/http/handler"
-	"github.com/kanaru-ssk/go-rpc-server/interface/outbound/memory"
-	memorytask "github.com/kanaru-ssk/go-rpc-server/interface/outbound/memory/task"
-	"github.com/kanaru-ssk/go-rpc-server/lib/id"
-	"github.com/kanaru-ssk/go-rpc-server/lib/tx"
-	"github.com/kanaru-ssk/go-rpc-server/usecase"
+	"github.com/kanaru-ssk/go-http-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/interface/inbound/http/handler"
+	"github.com/kanaru-ssk/go-http-server/interface/outbound/memory"
+	memorytask "github.com/kanaru-ssk/go-http-server/interface/outbound/memory/task"
+	"github.com/kanaru-ssk/go-http-server/lib/id"
+	"github.com/kanaru-ssk/go-http-server/lib/tx"
+	"github.com/kanaru-ssk/go-http-server/usecase"
 )
 
 func main() {

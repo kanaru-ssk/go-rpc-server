@@ -1,12 +1,12 @@
-# go-rpc-server
+# go-http-server
 
 Go で RPC スタイルの API を実装するサンプル
 
 ## 起動方法
 
 ```sh
-docker build -t go-rpc-server .
-docker run --rm -it -p 8000:8000 go-rpc-server
+docker build -t go-http-server .
+docker run --rm -it -p 8000:8000 go-http-server
 ```
 
 ## 動作確認コマンド

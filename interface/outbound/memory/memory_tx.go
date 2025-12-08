@@ -4,7 +4,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/kanaru-ssk/go-rpc-server/lib/tx"
+	"github.com/kanaru-ssk/go-http-server/lib/tx"
 )
 
 // MemoryTxManager はメモリ内で簡易的にトランザクション境界を再現する。
