@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os/signal"
 	"sync"
 	"syscall"
+	"time"
 
 	"github.com/kanaru-ssk/go-http-server/entity/task"
 	"github.com/kanaru-ssk/go-http-server/interface/inbound/http/handler"
@@ -29,14 +31,25 @@ func main() {
 	app := dependencyInjection(mu, idGenerator, txManager, tasks)
 
 	addr := ":8000"
+	srv := &http.Server{
+		Addr:    addr,
+		Handler: app.Handler,
+	}
+
 	go func() {
-		slog.InfoContext(ctx, "main.main: starting http server on: ", "addr", addr)
-		if err := http.ListenAndServe(addr, app.Handler); err != nil {
-			slog.WarnContext(ctx, "main.main: http.ListenAndServe: ", "err", err)
+		slog.InfoContext(ctx, "main.main: starting http server", "addr", addr)
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			slog.ErrorContext(ctx, "main.main: http.Server.ListenAndServe", "err", err)
 		}
 	}()
 
 	<-ctx.Done()
+	slog.InfoContext(context.Background(), "main.main: shutdown signal received")
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		slog.ErrorContext(context.Background(), "main.main: http.Server.Shutdown", "err", err)
+	}
 }
 
 type Application struct {
