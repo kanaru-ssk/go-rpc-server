@@ -6,7 +6,7 @@ Go で HTTP サーバーを実装するサンプルリポジトリ。
 
 ```sh
 docker build -t go-http-server .
-docker run --rm -it -p 8000:8000 go-http-server
+docker run --rm -p 8000:8000 go-http-server
 ```
 
 ## 動作確認コマンド
