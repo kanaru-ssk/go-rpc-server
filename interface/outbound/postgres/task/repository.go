@@ -143,9 +143,12 @@ func (r *repository) Delete(ctx context.Context, ltx tx.Tx, id string) error {
 		return fmt.Errorf("task.repository.Delete: postgres.UnwrapTx: %w", err)
 	}
 
-	_, err = tx.Exec(ctx, deleteTaskSQL, id)
+	cmd, err := tx.Exec(ctx, deleteTaskSQL, id)
 	if err != nil {
 		return fmt.Errorf("task.repository.Delete: %w", err)
+	}
+	if cmd.RowsAffected() == 0 {
+		return fmt.Errorf("task.repository.Delete: %w", task.ErrNotFound)
 	}
 
 	return nil
