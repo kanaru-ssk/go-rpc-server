@@ -6,7 +6,7 @@ services:
     volumes:
       - ./db:/docker-entrypoint-initdb.d:ro
 
-  go-http-server:
+  app:
     build:
       context: .
     ports:
