@@ -27,10 +27,12 @@ func (u *TaskUseCase) Get(ctx context.Context, id string) (*task.Task, error) {
 	if err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.Get: %w", err)
 	}
+
 	task, err := u.taskRepository.Get(ctx, nil, pi)
 	if err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.Get: %w", err)
 	}
+
 	return task, nil
 }
 
@@ -39,6 +41,7 @@ func (u *TaskUseCase) List(ctx context.Context) ([]*task.Task, error) {
 	if err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.List: %w", err)
 	}
+
 	return tasks, nil
 }
 
@@ -47,12 +50,12 @@ func (u *TaskUseCase) Create(ctx context.Context, title string) (*task.Task, err
 	if err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.Create: %w", err)
 	}
+
 	task := u.taskFactory.New(pt)
-	if err := u.txManager.WithinTx(ctx, func(ctx context.Context, tx tx.Tx) error {
-		return u.taskRepository.Create(ctx, tx, task)
-	}); err != nil {
+	if err := u.taskRepository.Create(ctx, nil, task); err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.Create: %w", err)
 	}
+
 	return task, nil
 }
 
@@ -69,16 +72,20 @@ func (u *TaskUseCase) Update(ctx context.Context, id, title string, status strin
 	if err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.Update: %w", err)
 	}
+
 	var task *task.Task
 	if err := u.txManager.WithinTx(ctx, func(ctx context.Context, tx tx.Tx) error {
 		task, err = u.taskRepository.Get(ctx, tx, pi)
 		if err != nil {
 			return err
 		}
-		task.Update(pt, ps)
+
+		task.UpdateTitle(pt)
+		task.UpdateStatus(ps)
 		if err := u.taskRepository.Update(ctx, tx, task); err != nil {
 			return err
 		}
+
 		return nil
 	}); err != nil {
 		return nil, fmt.Errorf("usecase.TaskUseCase.Update: %w", err)
@@ -92,9 +99,8 @@ func (u *TaskUseCase) Delete(ctx context.Context, id string) error {
 	if err != nil {
 		return fmt.Errorf("usecase.TaskUseCase.Delete: %w", err)
 	}
-	if err := u.txManager.WithinTx(ctx, func(ctx context.Context, tx tx.Tx) error {
-		return u.taskRepository.Delete(ctx, tx, pi)
-	}); err != nil {
+
+	if err := u.taskRepository.Delete(ctx, nil, pi); err != nil {
 		return fmt.Errorf("usecase.TaskUseCase.Delete: %w", err)
 	}
 	return nil
