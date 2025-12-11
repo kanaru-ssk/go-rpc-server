@@ -38,6 +38,7 @@ func main() {
 		slog.ErrorContext(ctx, "main.main: postgres.NewPool", "err", err)
 		os.Exit(1)
 	}
+	defer pool.Close()
 	txManager := postgres.NewManager(pool)
 	app := dependencyInjection(idGenerator, txManager, pool)
 
