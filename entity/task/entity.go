@@ -21,10 +21,22 @@ type Task struct {
 	UpdatedAt time.Time
 }
 
-func (t *Task) Update(title string, status Status) {
-	t.Title = title
-	t.Status = status
-	t.UpdatedAt = time.Now()
+func (t *Task) UpdateTitle(title string) error {
+	pt, err := ParseTitle(title)
+	if err != nil {
+		return fmt.Errorf("task.UpdateTitle: %w", err)
+	}
+	t.Title = pt
+	return nil
+}
+
+func (t *Task) UpdateStatus(status Status) error {
+	ps, err := ParseStatus(string(status))
+	if err != nil {
+		return fmt.Errorf("task.UpdateStatus: %w", err)
+	}
+	t.Status = ps
+	return nil
 }
 
 func ParseID(id string) (string, error) {
