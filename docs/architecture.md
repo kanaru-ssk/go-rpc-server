@@ -10,7 +10,7 @@
 
 ```
 /
-├── cmd/httpserver/main.go
+├── cmd/
 ├── entity/
 ├── interface/
 │   ├── inbound/
@@ -19,11 +19,12 @@
 └── usecase/
 ```
 
-entity はビジネス固有のロジック、usecase はアプリケーション固有の処理フローを、外部の DB や API、フレームワークなどに依存させずに実装する。
-
-interface/inbound は、ユーザーのリクエストをパースし、usecase を呼び出した結果を json や html などの適切な形に整形してユーザーに返す。
-
-外部の DB や API リクエストが必要なメソッドは entity で interface のみを定義しておき、interface/outbound で実装する。
+- `entity` : ビジネスルールをカプセル化。DB や外部 API リクエストが必要な処理は interface のみ定義する。
+- `usecase` : entity を使用し、アプリケーション固有の処理フローを実装する。
+- `interface/inbound` : ユーザーのリクエストをパースし、usecase を呼び出した結果を json や html などの適切な形に整形してユーザーに返す。
+- `interface/outbound` : DB ドライバーや外部 API の SDK などを使用し、entity で定義した interface の実装を行う。
+- `lib` : 汎用的なロジックを実装する。
+- `cmd` : アプリケーションのエントリーポイントを実装。ここで各レイヤーの依存性注入を行う。
 
 ## entity
 
