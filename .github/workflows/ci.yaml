@@ -12,7 +12,6 @@ jobs:
         uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
-          cache: false
       - name: Format
         run: go fmt ./...
       - name: Vet
