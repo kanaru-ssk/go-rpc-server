@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/kanaru-ssk/go-http-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/infrastructure/memory"
+	memorytask "github.com/kanaru-ssk/go-http-server/infrastructure/memory/task"
 	"github.com/kanaru-ssk/go-http-server/interface/inbound/http/handler"
-	"github.com/kanaru-ssk/go-http-server/interface/outbound/memory"
-	memorytask "github.com/kanaru-ssk/go-http-server/interface/outbound/memory/task"
 	"github.com/kanaru-ssk/go-http-server/lib/id"
 	"github.com/kanaru-ssk/go-http-server/lib/tx"
 	"github.com/kanaru-ssk/go-http-server/usecase"
