@@ -15,15 +15,15 @@ func Decode(values url.Values, dest any) error {
 		values = url.Values{}
 	}
 	if dest == nil {
-		return fmt.Errorf("querydecoder: dest must not be nil")
+		return fmt.Errorf("query.Decode: dest must not be nil")
 	}
 	v := reflect.ValueOf(dest)
 	if v.Kind() != reflect.Pointer || v.IsNil() {
-		return fmt.Errorf("querydecoder: dest must be non-nil pointer to struct")
+		return fmt.Errorf("query.Decode: dest must be non-nil pointer to struct")
 	}
 	structVal := v.Elem()
 	if structVal.Kind() != reflect.Struct {
-		return fmt.Errorf("querydecoder: dest must point to struct")
+		return fmt.Errorf("query.Decode: dest must point to struct")
 	}
 	structType := structVal.Type()
 	for i := 0; i < structType.NumField(); i++ {
@@ -37,7 +37,7 @@ func Decode(values url.Values, dest any) error {
 			continue
 		}
 		if err := assignValue(structVal.Field(i), vals); err != nil {
-			return fmt.Errorf("querydecoder: field %s: %w", field.Name, err)
+			return fmt.Errorf("query.Decode: field %s: %w", field.Name, err)
 		}
 	}
 	return nil
@@ -45,14 +45,14 @@ func Decode(values url.Values, dest any) error {
 
 func assignValue(field reflect.Value, values []string) error {
 	if !field.CanSet() {
-		return fmt.Errorf("cannot set field")
+		return fmt.Errorf("query.assignValue: cannot set field")
 	}
 	if field.Kind() == reflect.Slice {
 		return assignSlice(field, values)
 	}
 	parsed, err := parseScalar(field.Type(), values[len(values)-1])
 	if err != nil {
-		return err
+		return fmt.Errorf("query.assignValue: %w", err)
 	}
 	field.Set(parsed)
 	return nil
@@ -69,7 +69,7 @@ func parseTime(value string) (time.Time, error) {
 	if t, err := time.Parse(time.TimeOnly, value); err == nil {
 		return t, nil
 	}
-	return time.Time{}, fmt.Errorf("querydecoder: invalid time value %q", value)
+	return time.Time{}, fmt.Errorf("query.parseTime: : invalid time value %q", value)
 }
 
 func assignSlice(field reflect.Value, values []string) error {
@@ -78,7 +78,7 @@ func assignSlice(field reflect.Value, values []string) error {
 	for _, v := range values {
 		parsed, err := parseScalar(elemType, v)
 		if err != nil {
-			return err
+			return fmt.Errorf("query.assignSlice: %w", err)
 		}
 		slice = reflect.Append(slice, parsed)
 	}
@@ -94,7 +94,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		n, err := strconv.ParseInt(value, 10, bitSize)
 		if err != nil {
-			return reflect.Value{}, err
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetInt(n)
@@ -103,7 +103,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		n, err := strconv.ParseUint(value, 10, bitSize)
 		if err != nil {
-			return reflect.Value{}, err
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetUint(n)
@@ -111,7 +111,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 	case reflect.Bool:
 		b, err := strconv.ParseBool(value)
 		if err != nil {
-			return reflect.Value{}, err
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetBool(b)
@@ -120,7 +120,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		f, err := strconv.ParseFloat(value, bitSize)
 		if err != nil {
-			return reflect.Value{}, err
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetFloat(f)
@@ -129,7 +129,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		c, err := strconv.ParseComplex(value, bitSize)
 		if err != nil {
-			return reflect.Value{}, err
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetComplex(c)
@@ -138,10 +138,10 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		if t == reflect.TypeOf(time.Time{}) {
 			tm, err := parseTime(value)
 			if err != nil {
-				return reflect.Value{}, err
+				return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
 			}
 			return reflect.ValueOf(tm), nil
 		}
 	}
-	return reflect.Value{}, fmt.Errorf("unsupported kind %s", t.Kind())
+	return reflect.Value{}, fmt.Errorf("query.parseScalar: unsupported kind %s", t.Kind())
 }
