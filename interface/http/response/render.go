@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func RenderJson(ctx context.Context, w http.ResponseWriter, statusCode int, body interface{}) {
+func RenderJson(ctx context.Context, w http.ResponseWriter, statusCode int, body any) {
 	b, err := json.Marshal(body)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

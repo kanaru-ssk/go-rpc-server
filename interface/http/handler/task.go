@@ -9,7 +9,7 @@ import (
 
 	"github.com/kanaru-ssk/go-http-server/domain/task"
 	"github.com/kanaru-ssk/go-http-server/interface/http/response"
-	"github.com/kanaru-ssk/go-http-server/lib/querydecoder"
+	querydecoder "github.com/kanaru-ssk/go-http-server/lib/query"
 	"github.com/kanaru-ssk/go-http-server/usecase"
 )
 

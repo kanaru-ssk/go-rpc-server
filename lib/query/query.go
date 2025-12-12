@@ -1,4 +1,4 @@
-package querydecoder
+package query
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ import (
 
 // Decode は url.Values を構造体へマッピングする。
 // 構造体のフィールドに `query:"name"` タグを指定して利用する。
-func Decode(values url.Values, dest interface{}) error {
+func Decode(values url.Values, dest any) error {
 	if values == nil {
 		values = url.Values{}
 	}

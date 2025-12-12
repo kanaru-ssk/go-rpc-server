@@ -1,4 +1,4 @@
-package querydecoder
+package query
 
 import (
 	"net/url"
