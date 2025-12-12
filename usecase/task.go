@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/kanaru-ssk/go-http-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/domain/task"
 	"github.com/kanaru-ssk/go-http-server/lib/tx"
 )
 

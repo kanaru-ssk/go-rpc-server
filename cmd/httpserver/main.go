@@ -10,7 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/kanaru-ssk/go-http-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/domain/task"
 	"github.com/kanaru-ssk/go-http-server/infrastructure/memory"
 	memorytask "github.com/kanaru-ssk/go-http-server/infrastructure/memory/task"
 	"github.com/kanaru-ssk/go-http-server/interface/http/handler"
@@ -57,16 +57,16 @@ type Application struct {
 }
 
 func dependencyInjection(idGenerator id.Generator, txManager tx.Manager, tasks map[string]*task.Task) Application {
-	// interface/outbound
+	// infrastructure
 	taskRepository := memorytask.NewRepository(tasks)
 
-	// entity
+	// domain
 	taskFactory := task.NewFactory(idGenerator)
 
 	// usecase
 	taskUseCase := usecase.NewTaskUseCase(txManager, taskFactory, taskRepository)
 
-	// interface/inbound
+	// interface
 	taskHandler := handler.NewTaskHandler(taskUseCase)
 
 	mux := http.NewServeMux()

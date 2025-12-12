@@ -3,7 +3,7 @@ package response
 import (
 	"time"
 
-	"github.com/kanaru-ssk/go-http-server/entity/task"
+	"github.com/kanaru-ssk/go-http-server/domain/task"
 )
 
 type Task struct {
