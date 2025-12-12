@@ -4,37 +4,33 @@
 
 [The Clean Architecture](https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)をベースに設計
 
-![Architecture Diagram](architecture-diagram.svg)
+```mermaid
+block
+	columns 1
+	interface space
+	usecase space
+	domain space
+	infrastructure
 
-依存方向を同心円の内向きのみにする。
-
-```
-/
-├── cmd/
-├── entity/
-├── interface/
-│   ├── inbound/
-│   └── outbound/
-├── lib/
-└── usecase/
+	interface --> usecase
+	usecase --> domain
+	infrastructure -- "依存性逆転" --> domain
 ```
 
-- `entity` : ビジネスルールをカプセル化。DB や外部 API リクエストが必要な処理は interface のみ定義する。
-- `usecase` : entity を使用し、アプリケーション固有の処理フローを実装する。
-- `interface/inbound` : ユーザーのリクエストをパースし、usecase を呼び出した結果を json や html などの適切な形に整形してユーザーに返す。
-- `interface/outbound` : DB ドライバーや外部 API の SDK などを使用し、entity で定義した interface の実装を行う。
-- `lib` : 汎用的なロジックを実装する。
-- `cmd` : アプリケーションのエントリーポイントを実装。ここで各レイヤーの依存性注入を行う。
+- `interface` : ユーザーのリクエストをパースし、usecase を呼び出した結果を json や html などの適切な形に整形してユーザーに返す。
+- `usecase` : domain を使用し、アプリケーション固有の処理フローを実装する。
+- `domain` : ビジネスルールをカプセル化。DB や外部 API リクエストが必要な処理は interface のみ定義する。外部依存なし。
+- `infrastructure` : DB ドライバーや外部 API の SDK などを使用し、domain で定義した interface の実装を行う。
 
-## entity
+## domain
 
 ```
-├── entity/
+├── domain/
 │  └── task/
+│      ├── entity.go     # task構造体とメソッドを定義
 │      ├── errors.go     # エラーを定義
 │      ├── factory.go    # taskインスタンスを作成するための構造体
-│      ├── repository.go # データのアクセスメソッドのinterfaceを定義
-│      └── task.go       # task構造体とメソッドを定義
+│      └── repository.go # データのアクセスメソッドのinterfaceを定義
 ```
 
 ### entity.go
@@ -80,7 +76,7 @@ func ParseStatus(status string) (Status, error) {
 
 ### errors.go
 
-対象 entity の操作で発生するエラーを定義
+対象 domain の操作で発生するエラーを定義
 
 ```go
 var (
@@ -166,27 +162,19 @@ func (u *TaskUseCase) Get(ctx context.Context, id string) (*task.Task, error) {
 
 ## interface
 
-entity, usecase が特定の DB や外部 API、フレームワークに依存しないように interface レイヤーで吸収する。
+domain, usecase が特定の DB や外部 API、フレームワークに依存しないように interface レイヤーで吸収する。
 
 ```
 ├── interface/
-│   ├── inbound/
-│   │   └── http/
-│   │       ├── hundler/
-│   │       │   ├── healthz.go
-│   │       │   └── task.go
-│   │       └── response/
-│   │           ├── error.go
-│   │           ├── render.go
-│   │           └── task.go
-│   └── outbound/
-│       └── memory/
-│           ├── task/
-│           │   └── repository.go
-│           └── memory_tx.go
+│   └── http/
+│       ├── hundler/
+│       │   ├── healthz.go
+│       │   └── task.go
+│       └── response/
+│           ├── error.go
+│           ├── render.go
+│           └── task.go
 ```
-
-### inbound
 
 外部から内向きのリクエストを処理する。
 
@@ -246,11 +234,19 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 }
 ```
 
-### outbound
+## infrastructure
+
+```
+└── infrastructure/
+    └── memory/
+        ├── task/
+        │   └── repository.go
+        └── memory_tx.go
+```
 
 内部から外向きのリクエストを処理する。
 
-entity 層で定義した interface の実装を行う。DB や外部 API などとのやり取りを実装する。
+domain 層で定義した interface の実装を行う。DB や外部 API などとのやり取りを実装する。
 
 ```go
 func NewRepository(

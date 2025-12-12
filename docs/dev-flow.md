@@ -1,13 +1,13 @@
 # 開発フロー
 
-## 1. interface/inbound
+## 1. interface
 
-`/core/v1/task/done`のように、先に interface/inbound だけ作成して mock データを返す状態を作る。
+`/core/v1/task/done`のように、先に interface だけ作成して mock データを返す状態を作る。
 
 ```go
-// POST /core/v1/task/done
+// PUT /core/v1/task/done
 func (h *TaskHandler) HandleDoneV1(w http.ResponseWriter, r *http.Request) {
-	var request struct {
+	var body struct {
 		ID string `json:"id"`
 	}
 	var successResponse response.Task
@@ -16,7 +16,7 @@ func (h *TaskHandler) HandleDoneV1(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// 400
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		slog.WarnContext(ctx, "handler.TaskHandler.HandleDoneV1", "err", err)
 		errorResponse = response.MapError(response.ErrInvalidRequestBody)
 		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
@@ -44,13 +44,13 @@ func (h *TaskHandler) HandleDoneV1(w http.ResponseWriter, r *http.Request) {
 
 API 定義とモックサーバーを確認できる状態を先に作り、他のチームの作業に影響しないようにする。
 
-## 2. entity, usecase
+## 2. domain, usecase
 
-entity, usecase で DB や外部 API に依存しないロジックを実装する。
+domain, usecase で DB や外部 API に依存しないロジックを実装する。
 
-## 3. interface/outbound
+## 3. infrastructure
 
-entity で定義した interface に従って実際の DB 操作や外部 API との通信などの実装をする。
+domain で定義した interface に従って実際の DB 操作や外部 API との通信などの実装をする。
 
 ## 4. cmd/httpserver
 
@@ -58,4 +58,4 @@ entity で定義した interface に従って実際の DB 操作や外部 API �
 
 ## 補足
 
-スケジュールや他チームの作業に余裕があれば、entity, usecase を先に実装し、DB や外部 API、API 形式などの決定は後回しにしても良い。
+スケジュールや他チームの作業に余裕があれば、domain, usecase を先に実装し、DB や外部 API、API 形式などの決定は後回しにしても良い。

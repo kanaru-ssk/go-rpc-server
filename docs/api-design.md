@@ -65,7 +65,7 @@ mux.HandleFunc("PUT /core/v1/task/done", taskHandler.HandleDoneV1)
 handler のコードを追えばリクエスト、レスポンスの内容が分かる。
 
 ```go
-// interface/inbound/http/handler/task.go
+// interface/http/handler/task.go
 
 // GET /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
