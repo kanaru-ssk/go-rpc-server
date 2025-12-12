@@ -5,7 +5,7 @@ Go で HTTP サーバーを実装するサンプルリポジトリ。
 ## 起動方法
 
 ```sh
-docker compose up --watch
+docker compose up
 ```
 
 ## 動作確認コマンド
