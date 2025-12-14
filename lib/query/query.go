@@ -10,20 +10,21 @@ import (
 
 // Decode は url.Values を構造体へマッピングする。
 // 構造体のフィールドに `query:"name"` タグを指定して利用する。
-func Decode(values url.Values, dest any) error {
+// プリミティブ型とtime.Time型(RFC3339, DateOnly, TimeOnly)と、それらの配列をサポート
+func Decode(values url.Values, dst any) error {
 	if values == nil {
 		values = url.Values{}
 	}
-	if dest == nil {
-		return fmt.Errorf("query.Decode: dest must not be nil")
+	if dst == nil {
+		return fmt.Errorf("query.Decode: dst must not be nil")
 	}
-	v := reflect.ValueOf(dest)
+	v := reflect.ValueOf(dst)
 	if v.Kind() != reflect.Pointer || v.IsNil() {
-		return fmt.Errorf("query.Decode: dest must be non-nil pointer to struct")
+		return fmt.Errorf("query.Decode: dst must be non-nil pointer to struct")
 	}
 	structVal := v.Elem()
 	if structVal.Kind() != reflect.Struct {
-		return fmt.Errorf("query.Decode: dest must point to struct")
+		return fmt.Errorf("query.Decode: dst must point to struct")
 	}
 	structType := structVal.Type()
 	for i := 0; i < structType.NumField(); i++ {
@@ -59,7 +60,6 @@ func assignValue(field reflect.Value, values []string) error {
 }
 
 func parseTime(value string) (time.Time, error) {
-	// 優先的に RFC3339 を試し、それ以外に date/time のみも許容する。
 	if t, err := time.Parse(time.RFC3339, value); err == nil {
 		return t, nil
 	}
