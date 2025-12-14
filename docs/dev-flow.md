@@ -5,7 +5,7 @@
 `/core/v1/task/done`のように、先に interface だけ作成して mock データを返す状態を作る。
 
 ```go
-// PUT /core/v1/task/done
+// POST /core/v1/task/done
 func (h *TaskHandler) HandleDoneV1(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		ID string `json:"id"`

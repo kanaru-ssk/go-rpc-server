@@ -73,12 +73,12 @@ func dependencyInjection(idGenerator id.Generator, txManager tx.Manager, tasks m
 
 	mux.HandleFunc("GET /healthz", handler.HandleGetHealthz)
 
-	mux.HandleFunc("GET /core/v1/task/get", taskHandler.HandleGetV1)
-	mux.HandleFunc("GET /core/v1/task/list", taskHandler.HandleListV1)
+	mux.HandleFunc("POST /core/v1/task/get", taskHandler.HandleGetV1)
+	mux.HandleFunc("POST /core/v1/task/list", taskHandler.HandleListV1)
 	mux.HandleFunc("POST /core/v1/task/create", taskHandler.HandleCreateV1)
-	mux.HandleFunc("PUT /core/v1/task/update", taskHandler.HandleUpdateV1)
-	mux.HandleFunc("DELETE /core/v1/task/delete", taskHandler.HandleDeleteV1)
-	mux.HandleFunc("PUT /core/v1/task/done", taskHandler.HandleDoneV1)
+	mux.HandleFunc("POST /core/v1/task/update", taskHandler.HandleUpdateV1)
+	mux.HandleFunc("POST /core/v1/task/delete", taskHandler.HandleDeleteV1)
+	mux.HandleFunc("POST /core/v1/task/done", taskHandler.HandleDoneV1)
 
 	return Application{Handler: mux}
 }

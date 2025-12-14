@@ -181,11 +181,11 @@ domain, usecase が特定の DB や外部 API、フレームワークに依存�
 リクエストを usecase が受け取る型にデコードして usecase を呼び出し、結果を json や html などの適切なフォーマットに変換してレスポンスを返す。
 
 ```go
-// GET /core/v1/task/get
+// POST /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 	// 1番初めにリクエストとレスポンスの変数を定義してI/Oを読み取りやすくする。
-	var query struct {
-		ID string `query:"id"`
+	var request struct {
+		ID string `json:"id"`
 	}
 	var successResponse response.Task
 	var errorResponse response.Error
@@ -194,18 +194,19 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 
 	// 型のパースだけinterfaceレイヤーで行う。
 	// 詳細なバリデーションはusecase以降で行う。
-	if err := querydecoder.Decode(r.URL.Query(), &query); err != nil {
+	// 400
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
 		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
 		errorResponse = response.MapError(response.ErrInvalidRequestBody)
 		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
 		return
 	}
 
-	t, err := h.taskUseCase.Get(ctx, query.ID)
+	t, err := h.taskUseCase.Get(ctx, request.ID)
 
 	// 200
 	if err == nil {
-        // jsonに変換してレスポンスを返す
+		// jsonに変換してレスポンスを返す
 		successResponse = response.MapTask(t)
 		response.RenderJson(ctx, w, http.StatusOK, successResponse)
 		return
