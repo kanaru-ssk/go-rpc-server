@@ -69,7 +69,7 @@ func parseTime(value string) (time.Time, error) {
 	if t, err := time.Parse(time.TimeOnly, value); err == nil {
 		return t, nil
 	}
-	return time.Time{}, fmt.Errorf("query.parseTime: : invalid time value %q", value)
+	return time.Time{}, fmt.Errorf("query.parseTime: invalid time value %q", value)
 }
 
 func assignSlice(field reflect.Value, values []string) error {
@@ -94,7 +94,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		n, err := strconv.ParseInt(value, 10, bitSize)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: strconv.ParseInt: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetInt(n)
@@ -103,7 +103,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		n, err := strconv.ParseUint(value, 10, bitSize)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: strconv.ParseUint: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetUint(n)
@@ -111,7 +111,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 	case reflect.Bool:
 		b, err := strconv.ParseBool(value)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: strconv.ParseBool: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetBool(b)
@@ -120,7 +120,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		f, err := strconv.ParseFloat(value, bitSize)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: strconv.ParseFloat: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetFloat(f)
@@ -129,7 +129,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		bitSize := t.Bits()
 		c, err := strconv.ParseComplex(value, bitSize)
 		if err != nil {
-			return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
+			return reflect.Value{}, fmt.Errorf("query.parseScalar: strconv.ParseComplex: %w", err)
 		}
 		val := reflect.New(t).Elem()
 		val.SetComplex(c)
@@ -138,7 +138,7 @@ func parseScalar(t reflect.Type, value string) (reflect.Value, error) {
 		if t == reflect.TypeOf(time.Time{}) {
 			tm, err := parseTime(value)
 			if err != nil {
-				return reflect.Value{}, fmt.Errorf("query.parseScalar: %w", err)
+				return reflect.Value{}, fmt.Errorf("query.parseScalar: parseTime: %w", err)
 			}
 			return reflect.ValueOf(tm), nil
 		}
