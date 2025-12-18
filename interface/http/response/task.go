@@ -31,3 +31,10 @@ func MapTaskList(t []*task.Task) []Task {
 	}
 	return result
 }
+
+const (
+	// 4xx errors
+	ErrTaskInvalidID     ErrorCode = "INVALID_ID"
+	ErrTaskInvalidTitle  ErrorCode = "INVALID_TITLE"
+	ErrTaskInvalidStatus ErrorCode = "INVALID_STATUS"
+)
