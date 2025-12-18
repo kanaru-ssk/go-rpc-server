@@ -183,22 +183,18 @@ domain, usecase が特定の DB や外部 API、フレームワークに依存�
 ```go
 // POST /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
-	// 1番初めにリクエストとレスポンスの変数を定義してI/Oを読み取りやすくする。
+	ctx := r.Context()
+
 	var request struct {
 		ID string `json:"id"`
 	}
-	var successResponse response.Task
-	var errorResponse response.Error
-
-	ctx := r.Context()
 
 	// 型のパースだけinterfaceレイヤーで行う。
 	// 詳細なバリデーションはusecase以降で行う。
 	// 400
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
+		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1: request json decode error", "err", err)
+		response.RenderJson(ctx, w, http.StatusBadRequest, response.ErrorJson{ErrorCode: response.ErrInvalidRequestBody})
 		return
 	}
 
@@ -206,32 +202,26 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 
 	// 200
 	if err == nil {
-		// jsonに変換してレスポンスを返す
-		successResponse = response.MapTask(t)
-		response.RenderJson(ctx, w, http.StatusOK, successResponse)
+		response.RenderJson(ctx, w, http.StatusOK, response.MapTask(t))
 		return
 	}
 
-	// 400
-	if errors.Is(err, task.ErrInvalidID) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
-		return
+	maps := []response.ErrResMap{
+		// 400
+		{Err: task.ErrInvalidID, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrInvalidRequestBody},
 	}
 
-	// 404
-	if errors.Is(err, task.ErrNotFound) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-		errorResponse = response.MapError(response.ErrNotFound)
-		response.RenderJson(ctx, w, http.StatusNotFound, errorResponse)
-		return
+	for _, m := range maps {
+		if errors.Is(err, m.Err) {
+			slog.ErrorContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
+			response.RenderJson(ctx, w, m.StatusCode, response.ErrorJson{ErrorCode: m.ErrorCode})
+			return
+		}
 	}
 
 	// 500
 	slog.ErrorContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-	errorResponse = response.MapError(response.ErrInternalServerError)
-	response.RenderJson(ctx, w, http.StatusInternalServerError, errorResponse)
+	response.RenderJson(ctx, w, http.StatusInternalServerError, response.ErrorJson{ErrorCode: response.ErrInternalServerError})
 }
 ```
 

@@ -2,22 +2,22 @@ package response
 
 type ErrorCode string
 
-// 4xx errors
 const (
+	// 4xx errors
 	ErrInvalidRequestBody ErrorCode = "INVALID_REQUEST_BODY"
 	ErrMethodNotAllowed   ErrorCode = "METHOD_NOT_ALLOWED"
 	ErrNotFound           ErrorCode = "NOT_FOUND"
-)
 
-// 5xx errors
-const (
+	// 5xx errors
 	ErrInternalServerError ErrorCode = "INTERNAL_SERVER_ERROR"
 )
 
-type Error struct {
+type ErrorJson struct {
 	ErrorCode ErrorCode `json:"errorCode"`
 }
 
-func MapError(errorCode ErrorCode) Error {
-	return Error{errorCode}
+type ErrResMap struct {
+	Err        error
+	StatusCode int
+	ErrorCode  ErrorCode
 }

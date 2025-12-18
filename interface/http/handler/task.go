@@ -26,19 +26,16 @@ func NewTaskHandler(
 
 // POST /core/v1/task/get
 func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var request struct {
 		ID string `json:"id"`
 	}
-	var successResponse response.Task
-	var errorResponse response.Error
-
-	ctx := r.Context()
 
 	// 400
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
+		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1: request json decode error", "err", err)
+		response.RenderJson(ctx, w, http.StatusBadRequest, response.ErrorJson{ErrorCode: response.ErrInvalidRequestBody})
 		return
 	}
 
@@ -46,70 +43,59 @@ func (h *TaskHandler) HandleGetV1(w http.ResponseWriter, r *http.Request) {
 
 	// 200
 	if err == nil {
-		successResponse = response.MapTask(t)
-		response.RenderJson(ctx, w, http.StatusOK, successResponse)
+		response.RenderJson(ctx, w, http.StatusOK, response.MapTask(t))
 		return
 	}
 
-	// 400
-	if errors.Is(err, task.ErrInvalidID) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
-		return
+	maps := []response.ErrResMap{
+		// 400
+		{Err: task.ErrInvalidID, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrTaskInvalidID},
+		// 404
+		{Err: task.ErrNotFound, StatusCode: http.StatusNotFound, ErrorCode: response.ErrNotFound},
 	}
 
-	// 404
-	if errors.Is(err, task.ErrNotFound) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-		errorResponse = response.MapError(response.ErrNotFound)
-		response.RenderJson(ctx, w, http.StatusNotFound, errorResponse)
-		return
+	for _, m := range maps {
+		if errors.Is(err, m.Err) {
+			slog.ErrorContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
+			response.RenderJson(ctx, w, m.StatusCode, response.ErrorJson{ErrorCode: m.ErrorCode})
+			return
+		}
 	}
 
 	// 500
 	slog.ErrorContext(ctx, "handler.TaskHandler.HandleGetV1", "err", err)
-	errorResponse = response.MapError(response.ErrInternalServerError)
-	response.RenderJson(ctx, w, http.StatusInternalServerError, errorResponse)
+	response.RenderJson(ctx, w, http.StatusInternalServerError, response.ErrorJson{ErrorCode: response.ErrInternalServerError})
 }
 
 // POST /core/v1/task/list
 func (h *TaskHandler) HandleListV1(w http.ResponseWriter, r *http.Request) {
-	var successResponse []response.Task
-	var errorResponse response.Error
-
 	ctx := r.Context()
 
 	t, err := h.taskUseCase.List(ctx)
 
 	// 200
 	if err == nil {
-		successResponse = response.MapTaskList(t)
-		response.RenderJson(ctx, w, http.StatusOK, successResponse)
+		response.RenderJson(ctx, w, http.StatusOK, response.MapTaskList(t))
 		return
 	}
 
 	// 500
 	slog.ErrorContext(ctx, "handler.TaskHandler.HandleListV1", "err", err)
-	errorResponse = response.MapError(response.ErrInternalServerError)
-	response.RenderJson(ctx, w, http.StatusInternalServerError, errorResponse)
+	response.RenderJson(ctx, w, http.StatusInternalServerError, response.ErrorJson{ErrorCode: response.ErrInternalServerError})
 }
 
 // POST /core/v1/task/create
 func (h *TaskHandler) HandleCreateV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var request struct {
 		Title string `json:"title"`
 	}
-	var successResponse response.Task
-	var errorResponse response.Error
-
-	ctx := r.Context()
 
 	// 400
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleCreateV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
+		slog.WarnContext(ctx, "handler.TaskHandler.HandleCreateV1: request json decode error", "err", err)
+		response.RenderJson(ctx, w, http.StatusBadRequest, response.ErrorJson{ErrorCode: response.ErrInvalidRequestBody})
 		return
 	}
 
@@ -117,42 +103,42 @@ func (h *TaskHandler) HandleCreateV1(w http.ResponseWriter, r *http.Request) {
 
 	// 200
 	if err == nil {
-		successResponse = response.MapTask(t)
-		response.RenderJson(ctx, w, http.StatusOK, successResponse)
+		response.RenderJson(ctx, w, http.StatusOK, response.MapTask(t))
 		return
 	}
 
-	// 400
-	if errors.Is(err, task.ErrInvalidTitle) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleCreateV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
-		return
+	maps := []response.ErrResMap{
+		// 400
+		{Err: task.ErrInvalidTitle, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrTaskInvalidTitle},
+	}
+
+	for _, m := range maps {
+		if errors.Is(err, m.Err) {
+			slog.ErrorContext(ctx, "handler.TaskHandler.HandleCreateV1", "err", err)
+			response.RenderJson(ctx, w, m.StatusCode, response.ErrorJson{ErrorCode: m.ErrorCode})
+			return
+		}
 	}
 
 	// 500
 	slog.ErrorContext(ctx, "handler.TaskHandler.HandleCreateV1", "err", err)
-	errorResponse = response.MapError(response.ErrInternalServerError)
-	response.RenderJson(ctx, w, http.StatusInternalServerError, errorResponse)
+	response.RenderJson(ctx, w, http.StatusInternalServerError, response.ErrorJson{ErrorCode: response.ErrInternalServerError})
 }
 
 // POST /core/v1/task/update
 func (h *TaskHandler) HandleUpdateV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var request struct {
 		ID     string `json:"id"`
 		Title  string `json:"title"`
 		Status string `json:"status"`
 	}
-	var successResponse response.Task
-	var errorResponse response.Error
-
-	ctx := r.Context()
 
 	// 400
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleUpdateV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
+		slog.WarnContext(ctx, "handler.TaskHandler.HandleUpdateV1: request json decode error", "err", err)
+		response.RenderJson(ctx, w, http.StatusBadRequest, response.ErrorJson{ErrorCode: response.ErrInvalidRequestBody})
 		return
 	}
 
@@ -160,49 +146,44 @@ func (h *TaskHandler) HandleUpdateV1(w http.ResponseWriter, r *http.Request) {
 
 	// 200
 	if err == nil {
-		successResponse = response.MapTask(t)
-		response.RenderJson(ctx, w, http.StatusOK, successResponse)
+		response.RenderJson(ctx, w, http.StatusOK, response.MapTask(t))
 		return
 	}
 
-	// 400
-	if errors.Is(err, task.ErrInvalidID) ||
-		errors.Is(err, task.ErrInvalidTitle) ||
-		errors.Is(err, task.ErrInvalidStatus) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleUpdateV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
-		return
+	maps := []response.ErrResMap{
+		// 400
+		{Err: task.ErrInvalidID, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrTaskInvalidID},
+		{Err: task.ErrInvalidTitle, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrTaskInvalidTitle},
+		{Err: task.ErrInvalidStatus, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrTaskInvalidStatus},
+		// 404
+		{Err: task.ErrNotFound, StatusCode: http.StatusNotFound, ErrorCode: response.ErrNotFound},
 	}
 
-	// 404
-	if errors.Is(err, task.ErrNotFound) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleUpdateV1", "err", err)
-		errorResponse = response.MapError(response.ErrNotFound)
-		response.RenderJson(ctx, w, http.StatusNotFound, errorResponse)
-		return
+	for _, m := range maps {
+		if errors.Is(err, m.Err) {
+			slog.ErrorContext(ctx, "handler.TaskHandler.HandleUpdateV1", "err", err)
+			response.RenderJson(ctx, w, m.StatusCode, response.ErrorJson{ErrorCode: m.ErrorCode})
+			return
+		}
 	}
 
 	// 500
 	slog.ErrorContext(ctx, "handler.TaskHandler.HandleUpdateV1", "err", err)
-	errorResponse = response.MapError(response.ErrInternalServerError)
-	response.RenderJson(ctx, w, http.StatusInternalServerError, errorResponse)
+	response.RenderJson(ctx, w, http.StatusInternalServerError, response.ErrorJson{ErrorCode: response.ErrInternalServerError})
 }
 
 // POST /core/v1/task/delete
 func (h *TaskHandler) HandleDeleteV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var request struct {
 		ID string `json:"id"`
 	}
-	var errorResponse response.Error
-
-	ctx := r.Context()
 
 	// 400
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleDeleteV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
+		slog.WarnContext(ctx, "handler.TaskHandler.HandleDeleteV1: request json decode error", "err", err)
+		response.RenderJson(ctx, w, http.StatusBadRequest, response.ErrorJson{ErrorCode: response.ErrInvalidRequestBody})
 		return
 	}
 
@@ -214,56 +195,50 @@ func (h *TaskHandler) HandleDeleteV1(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 400
-	if errors.Is(err, task.ErrInvalidID) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleDeleteV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
-		return
+	maps := []response.ErrResMap{
+		// 400
+		{Err: task.ErrInvalidID, StatusCode: http.StatusBadRequest, ErrorCode: response.ErrTaskInvalidID},
+		// 404
+		{Err: task.ErrNotFound, StatusCode: http.StatusNotFound, ErrorCode: response.ErrNotFound},
 	}
 
-	// 404
-	if errors.Is(err, task.ErrNotFound) {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleDeleteV1", "err", err)
-		errorResponse = response.MapError(response.ErrNotFound)
-		response.RenderJson(ctx, w, http.StatusNotFound, errorResponse)
-		return
+	for _, m := range maps {
+		if errors.Is(err, m.Err) {
+			slog.ErrorContext(ctx, "handler.TaskHandler.HandleDeleteV1", "err", err)
+			response.RenderJson(ctx, w, m.StatusCode, response.ErrorJson{ErrorCode: m.ErrorCode})
+			return
+		}
 	}
 
 	// 500
 	slog.ErrorContext(ctx, "handler.TaskHandler.HandleDeleteV1", "err", err)
-	errorResponse = response.MapError(response.ErrInternalServerError)
-	response.RenderJson(ctx, w, http.StatusInternalServerError, errorResponse)
+	response.RenderJson(ctx, w, http.StatusInternalServerError, response.ErrorJson{ErrorCode: response.ErrInternalServerError})
 }
 
 // POST /core/v1/task/done
 func (h *TaskHandler) HandleDoneV1(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var request struct {
 		ID string `json:"id"`
 	}
-	var successResponse response.Task
-	var errorResponse response.Error
-
-	ctx := r.Context()
 
 	// 400
 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		slog.WarnContext(ctx, "handler.TaskHandler.HandleDoneV1", "err", err)
-		errorResponse = response.MapError(response.ErrInvalidRequestBody)
-		response.RenderJson(ctx, w, http.StatusBadRequest, errorResponse)
+		slog.WarnContext(ctx, "handler.TaskHandler.HandleDoneV1: request json decode error", "err", err)
+		response.RenderJson(ctx, w, http.StatusBadRequest, response.ErrorJson{ErrorCode: response.ErrInvalidRequestBody})
 		return
 	}
 
 	// 他のチームの作業に影響しないように、開発中はmockデータを返しておく
-	// 204
-	successResponse = response.Task{
+	// 200
+	response.RenderJson(ctx, w, http.StatusOK, response.Task{
 		ID:        "id",
 		Title:     "title",
 		Status:    "TODO",
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
-	}
-	response.RenderJson(ctx, w, http.StatusOK, successResponse)
+	})
 
 	// 400
 
