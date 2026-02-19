@@ -1,0 +1,19 @@
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d:ro
+
+  app:
+    build:
+      context: .
+    ports:
+      - 8000:8000
+    develop:
+      watch:
+        - action: rebuild
+          path: .
+    depends_on:
+      - db

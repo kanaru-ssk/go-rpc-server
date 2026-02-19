@@ -5,14 +5,15 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/kanaru-ssk/go-http-server/domain/task"
-	"github.com/kanaru-ssk/go-http-server/infrastructure/memory"
-	memorytask "github.com/kanaru-ssk/go-http-server/infrastructure/memory/task"
+	"github.com/kanaru-ssk/go-http-server/infrastructure/postgres"
+	postgrestask "github.com/kanaru-ssk/go-http-server/infrastructure/postgres/task"
 	"github.com/kanaru-ssk/go-http-server/interface/http/handler"
 	"github.com/kanaru-ssk/go-http-server/lib/id"
 	"github.com/kanaru-ssk/go-http-server/lib/tx"
@@ -25,10 +26,21 @@ func main() {
 	defer stop()
 
 	idGenerator := &id.SecureGenerator{}
-	mu := &sync.RWMutex{}
-	txManager := memory.NewTxManager(mu)
-	tasks := make(map[string]*task.Task)
-	app := dependencyInjection(idGenerator, txManager, tasks)
+	pool, err := postgres.NewPool(ctx, postgres.Config{
+		Host:     "db",
+		Port:     5432,
+		User:     "postgres",
+		Password: "password",
+		Database: "postgres",
+		MaxConns: 10,
+	})
+	if err != nil {
+		slog.ErrorContext(ctx, "main.main: postgres.NewPool", "err", err)
+		os.Exit(1)
+	}
+	defer pool.Close()
+	txManager := postgres.NewManager(pool)
+	app := dependencyInjection(idGenerator, txManager, pool)
 
 	addr := ":8000"
 	srv := &http.Server{
@@ -56,9 +68,9 @@ type Application struct {
 	Handler http.Handler
 }
 
-func dependencyInjection(idGenerator id.Generator, txManager tx.Manager, tasks map[string]*task.Task) Application {
+func dependencyInjection(idGenerator id.Generator, txManager tx.Manager, pool *pgxpool.Pool) Application {
 	// infrastructure
-	taskRepository := memorytask.NewRepository(tasks)
+	taskRepository := postgrestask.NewRepository(pool)
 
 	// domain
 	taskFactory := task.NewFactory(idGenerator)
